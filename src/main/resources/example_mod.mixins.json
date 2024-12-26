@@ -1,13 +1,13 @@
 {
 	"required": true,
-	"minVersion": "0.8",
-	"package": "com.example.example_mod.mixin",
+	"package": "es.farweb.farwebautotool.mixin",
 	"compatibilityLevel": "JAVA_17",
-	"mixins": [],
-	"client": [
-		"TitleScreenMixin"
+	"mixins": [
+	  "TitleScreenMixin"
 	],
+	"client": [],
 	"injectors": {
-		"defaultRequire": 1
+	  "defaultRequire": 1
 	}
-}
+  }
+  

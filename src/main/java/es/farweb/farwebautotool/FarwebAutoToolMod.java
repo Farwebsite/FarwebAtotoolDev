@@ -1,19 +1,12 @@
 package es.farweb.farwebautotool;
 
-import org.quiltmc.loader.api.ModContainer;
-import org.quiltmc.qsl.base.api.entrypoint.ModInitializer;
+import net.fabricmc.api.ClientModInitializer;
 
-/**
- * FarwebAutoToolMod
- * Punto de entrada principal de tu mod (v1.0.0).
- */
-public class FarwebAutoToolMod implements ModInitializer {
+public class FarwebAutoToolMod implements ClientModInitializer {
 
     @Override
-    public void onInitialize(ModContainer mod) {
-        System.out.println("[FarwebAutoToolMod] Iniciando Farweb Auto Tool Mod - v1.0.0!");
-
-        // Registramos la lógica de auto-herramienta y auto-arma
+    public void onInitializeClient() {
+        System.out.println("[FarwebAutoToolMod] Mod inicializado en cliente.");
         FarwebAttackHandler.register();
     }
 }
