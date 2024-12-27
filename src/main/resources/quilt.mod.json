@@ -1,28 +1,42 @@
 {
 	"schema_version": 1,
 	"quilt_loader": {
-	  "id": "farweb_auto_tool_mod",
+	  "id": "farwebautotoolmod",
 	  "group": "es.farweb.farwebautotool",
 	  "version": "1.0.0",
+	  "metadata": {
+		"name": "Farweb Auto Tool Mod",
+		"description": "Un mod para seleccionar automáticamente las mejores herramientas y armas.",
+		"contributors": {
+		  "Farweb": "Desarrollador"
+		},
+		"contact": {
+		  "homepage": "https://www.farweb.es",
+		  "sources": "https://github.com/Farwebsite/FarwebAutoToolMod"
+		},
+		"license": "MIT",
+		"icon": "assets/farwebautotoolmod/icon.png"
+	  },
 	  "entrypoints": {
 		"client": [
 		  "es.farweb.farwebautotool.FarwebAutoToolMod"
 		]
 	  },
-	  "metadata": {
-		"name": "Farweb Auto Tool Mod",
-		"description": "Mod para cambiar automáticamente herramientas y armas según el bloque o enemigo.",
-		"authors": ["Farweb"],
-		"contact": {
-		  "homepage": "https://www.farweb.es",
-		  "email": "hola@farweb.es"
+	  "depends": [
+		{
+		  "id": "minecraft",
+		  "versions": [">=1.20.1"]
+		},
+		{
+		  "id": "quilt_loader",
+		  "versions": [">=0.24.0"]
+		},
+		{
+		  "id": "quilted_fabric_api",
+		  "versions": [">=7.7.0"]
 		}
-	  },
-	  "depends": {
-		"minecraft": "1.20.1",
-		"fabricloader": "*",
-		"quilted_fabric_api": "*"
-	  }
+	  ],
+	  "breaks": []
 	}
   }
   

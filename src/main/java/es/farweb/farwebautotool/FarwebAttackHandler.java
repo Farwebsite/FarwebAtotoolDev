@@ -1,89 +1,109 @@
 package es.farweb.farwebautotool;
 
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.mob.HostileEntity;
-import net.minecraft.item.*;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.SwordItem;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.BlockHitResult;
 
 public class FarwebAttackHandler {
 
-    public static void register() {
-        // Manejo de eventos con ClientTickEvents (obsoleto)
-        ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (client.player != null && client.crosshairTarget != null) {
-                handleBlockBreaking(client);
-                handleEntityAttack(client);
+    /**
+     * Maneja la lógica de romper bloques en función del mejor instrumento disponible.
+     * 
+     * @param minecraft Instancia del cliente Minecraft.
+     */
+    public static void handleBlockBreaking(Minecraft minecraft) {
+        if (minecraft.hitResult instanceof BlockHitResult hitResult && minecraft.player != null) {
+            BlockPos blockPos = hitResult.getBlockPos();
+            BlockState blockState = minecraft.level.getBlockState(blockPos);
+
+            ItemStack bestTool = getBestToolForBlock(minecraft, blockState);
+            if (bestTool != null) {
+                // Cambiar a la herramienta óptima
+                minecraft.player.getInventory().selected = findToolSlot(minecraft, bestTool);
             }
-        });
+        }
     }
 
-    private static void handleBlockBreaking(MinecraftClient client) {
-        if (client.crosshairTarget instanceof BlockHitResult hitResult) {
-            BlockPos pos = hitResult.getBlockPos();
-            if (pos != null && client.world != null) {
-                BlockState blockState = client.world.getBlockState(pos);
-                Block block = blockState.getBlock();
+    /**
+     * Encuentra la mejor herramienta para romper un bloque específico.
+     * 
+     * @param minecraft Instancia del cliente Minecraft.
+     * @param blockState Estado del bloque.
+     * @return La herramienta más adecuada.
+     */
+    private static ItemStack getBestToolForBlock(Minecraft minecraft, BlockState blockState) {
+        ItemStack bestTool = ItemStack.EMPTY;
+        float bestSpeed = 0.0f;
 
-                if (block != null) {
-                    ItemStack bestTool = getBestToolForBlock(client, blockState);
-                    if (bestTool != null) {
-                        client.player.getInventory().selectedSlot = client.player.getInventory().getSlotWithStack(bestTool);
+        if (minecraft.player != null) {
+            for (ItemStack itemStack : minecraft.player.getInventory().items) {
+                if (!itemStack.isEmpty() && itemStack.getDestroySpeed(blockState) > bestSpeed) {
+                    bestSpeed = itemStack.getDestroySpeed(blockState);
+                    bestTool = itemStack;
+                }
+            }
+        }
+        return bestTool;
+    }
+
+    /**
+     * Maneja la lógica de atacar entidades en función del mejor arma disponible.
+     * 
+     * @param minecraft Instancia del cliente Minecraft.
+     */
+    public static void handleEntityAttack(Minecraft minecraft) {
+        if (minecraft.hitResult instanceof BlockHitResult && minecraft.player != null) {
+            ItemStack bestWeapon = getBestWeapon(minecraft);
+            if (bestWeapon != null) {
+                // Cambiar al arma óptima
+                minecraft.player.getInventory().selected = findToolSlot(minecraft, bestWeapon);
+            }
+        }
+    }
+
+    /**
+     * Encuentra la mejor arma para atacar.
+     * 
+     * @param minecraft Instancia del cliente Minecraft.
+     * @return La mejor arma disponible.
+     */
+    private static ItemStack getBestWeapon(Minecraft minecraft) {
+        ItemStack bestWeapon = ItemStack.EMPTY;
+        float bestDamage = 0.0f;
+
+        if (minecraft.player != null) {
+            for (ItemStack itemStack : minecraft.player.getInventory().items) {
+                if (!itemStack.isEmpty() && itemStack.getItem() instanceof SwordItem sword) {
+                    float damage = sword.getAttackDamage();
+                    if (damage > bestDamage) {
+                        bestDamage = damage;
+                        bestWeapon = itemStack;
                     }
                 }
             }
         }
-    }
-
-    private static ItemStack getBestToolForBlock(MinecraftClient client, BlockState blockState) {
-        float maxSpeed = 0.0F;
-        ItemStack bestTool = ItemStack.EMPTY;
-
-        for (ItemStack stack : client.player.getInventory().main) {
-            if (!stack.isEmpty() && stack.isSuitableFor(blockState)) {
-                float speed = stack.getMiningSpeedMultiplier(blockState);
-                if (speed > maxSpeed) {
-                    maxSpeed = speed;
-                    bestTool = stack;
-                }
-            }
-        }
-
-        return bestTool;
-    }
-
-    private static void handleEntityAttack(MinecraftClient client) {
-        if (client.targetedEntity instanceof HostileEntity) {
-            ItemStack bestWeapon = getBestWeapon(client);
-            if (bestWeapon != null) {
-                client.player.getInventory().selectedSlot = client.player.getInventory().getSlotWithStack(bestWeapon);
-            }
-        }
-    }
-
-    private static ItemStack getBestWeapon(MinecraftClient client) {
-        float maxDamage = 0.0F;
-        ItemStack bestWeapon = ItemStack.EMPTY;
-
-        for (ItemStack stack : client.player.getInventory().main) {
-            if (!stack.isEmpty() && stack.getItem() instanceof MiningToolItem miningToolItem) {
-                float damage = miningToolItem.getAttackDamage();
-                if (damage > maxDamage) {
-                    maxDamage = damage;
-                    bestWeapon = stack;
-                }
-            } else if (stack.getItem() instanceof SwordItem swordItem) {
-                float damage = swordItem.getAttackDamage();
-                if (damage > maxDamage) {
-                    maxDamage = damage;
-                    bestWeapon = stack;
-                }
-            }
-        }
-
         return bestWeapon;
+    }
+
+    /**
+     * Encuentra la ranura en el inventario donde está la herramienta o arma.
+     * 
+     * @param minecraft Instancia del cliente Minecraft.
+     * @param item      La herramienta o arma a buscar.
+     * @return El índice de la ranura donde está el ítem.
+     */
+    private static int findToolSlot(Minecraft minecraft, ItemStack item) {
+        if (minecraft.player != null) {
+            for (int i = 0; i < minecraft.player.getInventory().items.size(); i++) {
+                if (minecraft.player.getInventory().items.get(i).equals(item)) {
+                    return i;
+                }
+            }
+        }
+        return 0; // Por defecto, volver a la ranura 0 si no se encuentra
     }
 }
